@@ -12,7 +12,7 @@ app.get('/usuario', function(req, res) {
     let limite = req.query.limite || 0;
     limite = Number(limite);
 
-    Usuario.find({}, `nombre email role estado img google`)
+    Usuario.find({ estado: true }, `nombre email role estado img google`)
         .skip(desde)
         .limit(limite)
         .exec((err, usuarios) => {
@@ -89,8 +89,33 @@ app.put('/usuario/:id', function(req, res) {
 });
 
 
-app.delete('/usuario', function(req, res) {
-    res.json('delete Usuario');
+app.delete('/usuario/:id', function(req, res) {
+    let id = req.params.id;
+    let cambiarEstado = { estado: false }
+    Usuario.findByIdAndUpdate(id, cambiarEstado, { new: true, context: 'query' }, (err, usuarioDB) => {
+        if (err) {
+            return res.status(400).json({
+                ok: false,
+                err
+            });
+        }
+        if (!usuarioDB) {
+            res.json({
+                ok: false,
+                err: {
+                    message: 'Usuario no encontrado'
+                }
+
+            });
+        } else {
+
+            res.json({
+                ok: true,
+                usuario: usuarioDB
+            });
+        }
+    });
+
 });
 
 module.exports = app;
